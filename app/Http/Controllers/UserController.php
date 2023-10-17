@@ -11,6 +11,11 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    public function index() {
+        $users = User::where('id','!=', auth()->user()->id)->get();
+
+        return $this->success($users);
+    }
 
     public function register(Request $request)
     {
@@ -28,10 +33,9 @@ class UserController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'data' => new UserResource($user),
-        ])->setStatusCode(201);
+        return $this->success([
+            'user' => new UserResource($user),
+        ], "User has been register succesfully", 201);
     }
 
     public function login(Request $request)
@@ -51,24 +55,24 @@ class UserController extends Controller
 
         $token = $user->createToken('api-token')->plainTextToken;
 
-        return response()->json([
+        return $this->success([
             'token' => $token,
-            'data' => new UserResource($user),
-            'msg' => "User Login Successfully"
-        ])->setStatusCode(200);
+            'user' => new UserResource($user),
+        ], "User Login Successfully");
     }
 
     public function get(Request $request)
     {
         $user = $request->user(); // The authenticated user
-
+        
         if (!$user) {
-            return response()->json(['message' => 'User not authenticated'], 401);
+           return $this->error('User not authenticated', 401);
         }
 
-        return response()->json([
-            'data' => new UserResource($user),
-        ])->setStatusCode(200);
+        return $this->success([
+            'user' => new UserResource($user)
+        ],'Get current user success', 200);
+    
     }
 
     public function logout(Request $request)
@@ -78,7 +82,6 @@ class UserController extends Controller
         if ($user) {
             $user->tokens()->delete();
         }
-
-        return response()->json(['message' => 'User logged out successfully']);
+        return $this->success(null, 'User logged out successfully');
     }
 }

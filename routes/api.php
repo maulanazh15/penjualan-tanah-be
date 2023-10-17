@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatMessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -17,11 +19,16 @@ use App\Http\Controllers\UserController;
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     // Add routes that require authentication here
-    Route::get('/current-user', [UserController::class, 'get']);
-    Route::delete('/logout', [UserController::class, 'logout']);
+    Route::apiResource('chat', ChatController::class)->only(['index', 'show','store']);
+    Route::apiResource('chat_message', ChatMessageController::class)->only(['index','store']);
 });
 
-Route::post('/login', [UserController::class, 'login']);
-Route::post('/register', [UserController::class, 'register']);
-
-
+Route::prefix('user')
+    ->as('user.')
+    ->group(function () {
+        Route::post('/login', [UserController::class, 'login'])->name('login');
+        Route::post('/register', [UserController::class, 'register'])->name('register');
+        Route::get('/current-user', [UserController::class, 'get'])->middleware('auth:sanctum')->name('get_current_user');
+        Route::delete('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
+        Route::get('/', [UserController::class, 'index'])->middleware('auth:sanctum')->name('index');
+    });
