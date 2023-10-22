@@ -26,9 +26,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::prefix('user')
     ->as('user.')
     ->group(function () {
-        Route::post('/login', [UserController::class, 'login'])->name('login');
-        Route::post('/register', [UserController::class, 'register'])->name('register');
-        Route::get('/current-user', [UserController::class, 'get'])->middleware('auth:sanctum')->name('get_current_user');
-        Route::delete('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
         Route::get('/', [UserController::class, 'index'])->middleware('auth:sanctum')->name('index');
+        Route::post('/register', [UserController::class, 'register'])->name('register');
+        Route::post('/login', [UserController::class, 'login'])->name('login');
+        Route::get('/current-user', [UserController::class, 'get'])->middleware('auth:sanctum')->name('get_current_user');
+        Route::post('/update', [UserController::class, 'update'])->middleware('auth:sanctum')->name('update');
+        Route::delete('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
     });

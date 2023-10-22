@@ -35,10 +35,10 @@ class Controller extends BaseController
      * @param int $statusCode
      * @return JsonResponse
      */
-    public function error(string $message, int $statusCode = 400): JsonResponse
+    public function error(string $message, int $statusCode = 400, mixed $data = null): JsonResponse
     {
         return response()->json([
-            'data' => null,
+            'data' => $data,
             'success' => false,
             'message' => $message,
         ], $statusCode);

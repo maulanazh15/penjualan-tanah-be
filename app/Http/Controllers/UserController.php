@@ -2,30 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ModelFileUploadHelper;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\GetMessageRequest;
+use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function index() {
-        $users = User::where('id','!=', auth()->user()->id)->get();
+    public function index()
+    {
+        $users = User::where('id', '!=', auth()->user()->id)->get();
 
         return $this->success($users);
     }
 
     public function register(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'username' => 'required|unique:users',
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed',
         ]);
+        // $messages = $validator->messages()->toJson();
 
+        // dd($messages);
+        if ($validator->fails()) {
+            return $this->error('Register user failed. ', 400, $validator->messages());
+        }
         $user = User::create([
             'username' => $request->input('username'),
             'name' => $request->input('name'),
@@ -33,46 +44,42 @@ class UserController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
 
+        $token = $user->createToken('api-token-user-' . $user->id)->plainTextToken;
+
         return $this->success([
             'user' => new UserResource($user),
+            'token' => $token,
         ], "User has been register succesfully", 201);
     }
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required',
         ]);
 
-        $user = User::where('username', $request->input('username'))->first();
+        if (Auth::attempt($credentials)) {
+            $user = User::where('username', $request->input('username'))->first();
+            $token = $user->createToken('api-token-' . $user->id)->plainTextToken;
 
-        if (!$user || !Hash::check($request->input('password'), $user->password)) {
-            throw ValidationException::withMessages([
-                'username' => ['The provided credentials are incorrect.'],
-            ]);
+            return $this->success([
+                'token' => $token,
+                'user' => new UserResource($user),
+            ], "User Login Successfully");
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return $this->success([
-            'token' => $token,
-            'user' => new UserResource($user),
-        ], "User Login Successfully");
+        return $this->error('Username atau password mungkin salah');
     }
 
     public function get(Request $request)
     {
-        $user = $request->user(); // The authenticated user
-        
-        if (!$user) {
-           return $this->error('User not authenticated', 401);
+        // The authenticated user
+        if ($request->user()) {
+            return $this->success([
+                'user' => new UserResource($request->user())
+            ], 'Get current user success', 200);
         }
-
-        return $this->success([
-            'user' => new UserResource($user)
-        ],'Get current user success', 200);
-    
     }
 
     public function logout(Request $request)
@@ -81,7 +88,44 @@ class UserController extends Controller
 
         if ($user) {
             $user->tokens()->delete();
+            return $this->success(null, 'User logged out successfully');
         }
-        return $this->success(null, 'User logged out successfully');
+    }
+
+    public function update(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->error('User not found', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'username' => 'unique:users,username,' . $user->id,
+            'name' => 'string',
+            'email' => 'email|unique:users,email,' . $user->id,
+            // 'password' => 'sometimes|required|confirmed',
+            'photo_profile' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error('Update user failed.', 400, $validator->messages());
+        }
+        // dd($request->all());
+        $user->username = $request->input('username') ?? $user->username;
+        $user->name = $request->input('name') ?? $user->name;
+        $user->email = $request->input('email') ?? $user->email;
+
+        // if ($request->has('password')) {
+        //     $user->password = Hash::make($request->input('password'));
+        // }
+
+        if ($request->hasFile('photo_profile')) {
+           $user->photo_profile = ModelFileUploadHelper::modelFileUpdate($user, 'photo_profile', $request->file('photo_profile'));
+        }
+
+        $user->save();
+
+        return $this->success(new UserResource($user), 'User data has been updated successfully', 200);
     }
 }

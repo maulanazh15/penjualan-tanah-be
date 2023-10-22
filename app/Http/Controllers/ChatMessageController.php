@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\NewMessageSent;
+use App\Models\Chat;
+use App\Models\User;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
+use App\Events\NewMessageSent;
 use App\Http\Requests\GetMessageRequest;
 use App\Http\Requests\StoreMessageRequest;
 
 class ChatMessageController extends Controller
 {
-    public function index(GetMessageRequest $request) {
+    public function index(GetMessageRequest $request)
+    {
         $data = $request->validated();
 
         $chatId = $data['chat_id'];
@@ -30,7 +33,8 @@ class ChatMessageController extends Controller
         return $this->success($messages->getCollection());
     }
 
-    public function store(StoreMessageRequest $request) {
+    public function store(StoreMessageRequest $request)
+    {
         $data = $request->validated();
 
         $data['user_id'] = auth()->user()->id;
@@ -44,9 +48,33 @@ class ChatMessageController extends Controller
         return $this->success($chatMessage, 'Message has been sent succesfully');
     }
 
-    private function sendNotificationToOther(ChatMessage $chatMessage) {
-        // $chatId = $chatMessage->chat_id;
+    private function sendNotificationToOther(ChatMessage $chatMessage)
+    {
+        $chatId = $chatMessage->chat_id;
 
         NewMessageSent::dispatch($chatMessage);
+
+        $user = auth()->user();
+        $userId = $user->id;
+
+        $chat = Chat::where('id', $chatId)
+            ->with(['participants' => function ($q) use ($userId) {
+                $q->where('user_id', '!=', $userId);
+            }])->first();
+
+        if (count($chat->participants) > 0) {
+            $otherUserId = $chat->participants[0]->user_id;
+
+            $otherUser = User::where('id', $otherUserId)->first();
+            // dd($otherUser);
+            $otherUser->sendNewMessageNotification([
+                'messageData' => [
+                    'senderName' => $user->name,
+                    'message' => $chatMessage->message,
+                    'chatId' => $chatMessage->chat_id
+                ]
+            ]);
+            
+        }
     }
 }
