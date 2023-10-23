@@ -12,7 +12,10 @@ use App\Http\Requests\GetMessageRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Cache\Store;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
+
 
 class UserController extends Controller
 {
@@ -121,11 +124,39 @@ class UserController extends Controller
         // }
 
         if ($request->hasFile('photo_profile')) {
-           $user->photo_profile = ModelFileUploadHelper::modelFileUpdate($user, 'photo_profile', $request->file('photo_profile'));
+            $user->photo_profile = ModelFileUploadHelper::modelFileUpdate($user, 'photo_profile', $request->file('photo_profile'));
         }
 
         $user->save();
 
         return $this->success(new UserResource($user), 'User data has been updated successfully', 200);
+    }
+
+    public function getPhotoProfile(Request $request)
+    {
+
+        $data = $request->validate(
+           [ 
+            'user_id' => 'required',
+            ]
+        );
+
+        $user = User::where('id', $data['user_id'])->first();
+
+        // dd($user);
+        $path = '/public/users/photo-profile/'.($user->photo_profile ?? 'go-you-jung.jpg');
+        // $path = $user->photo_profile ?? 'go-you-jung.jpg';
+        // dd($path);
+        if (Storage::exists($path)) {
+            $file = Storage::get($path);
+            $mimeType = Storage::mimeType($path);
+
+            return response($file, 200, [
+                'Content-Type' => $mimeType,
+                'Connection' => 'keep-alive',
+            ]);
+        } 
+
+        return $this->error('User photo profile not found', 404);
     }
 }

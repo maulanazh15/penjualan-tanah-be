@@ -27,6 +27,7 @@ Route::prefix('user')
     ->as('user.')
     ->group(function () {
         Route::get('/', [UserController::class, 'index'])->middleware('auth:sanctum')->name('index');
+        Route::get('/photo-profile', [UserController::class, 'getPhotoProfile'])->name('profile_image');
         Route::post('/register', [UserController::class, 'register'])->name('register');
         Route::post('/login', [UserController::class, 'login'])->name('login');
         Route::get('/current-user', [UserController::class, 'get'])->middleware('auth:sanctum')->name('get_current_user');
