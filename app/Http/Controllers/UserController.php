@@ -48,11 +48,15 @@ class UserController extends Controller
         ]);
 
         $token = $user->createToken('api-token-user-' . $user->id)->plainTextToken;
+        // $request->session()->regenerate();
+
+        // $csrf_token = csrf_token();
 
         return $this->success([
-            'user' => new UserResource($user),
             'token' => $token,
-        ], "User has been register succesfully", 201);
+            // 'X-CSRF-TOKEN' =>  $csrf_token,
+            'user' => new UserResource($user),
+        ], "User Login Successfully");
     }
 
     public function login(Request $request)
@@ -65,9 +69,14 @@ class UserController extends Controller
         if (Auth::attempt($credentials)) {
             $user = User::where('username', $request->input('username'))->first();
             $token = $user->createToken('api-token-' . $user->id)->plainTextToken;
+            
+            // $request->session()->regenerate();
+
+            // $csrf_token = csrf_token();
 
             return $this->success([
                 'token' => $token,
+                // 'X-CSRF-TOKEN' =>   $csrf_token,
                 'user' => new UserResource($user),
             ], "User Login Successfully");
         }
@@ -159,4 +168,14 @@ class UserController extends Controller
 
         return $this->error('User photo profile not found', 404);
     }
+
+    // public function pusherAuth(Request $request){
+    //     $key = env('PUSHER_APP_KEY');
+    //     $secret = env('PUSHER_APP_SECRET');
+    //     $channel_name = $request->channel_name;
+    //     $socket_id = $request->socket_id;
+    //     $string_to_sign = $socket_id.':'.$channel_name;
+    //     $signature = hash_hmac('sha256', $string_to_sign, $secret);
+    //     return response()->json(['auth' => $key.':'.$signature]);
+    // }
 }

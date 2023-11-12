@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\ChatParticipant;
+use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -13,6 +15,15 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('chat.{id}', function ($user, $id) {
+    // dd('test broadcast apakah sampai ke channel');
+
+    // return true;
+    $participant = ChatParticipant::where('user_id', $user->id)
+    ->where('chat_id', $id)
+    ->first();
+    
+    // return true;
+    return $participant !== null;
+
 });

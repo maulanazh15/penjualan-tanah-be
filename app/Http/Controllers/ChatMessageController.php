@@ -52,7 +52,9 @@ class ChatMessageController extends Controller
     {
         $chatId = $chatMessage->chat_id;
 
-        NewMessageSent::dispatch($chatMessage);
+        // NewMessageSent::dispatch($chatMessage);
+        
+        broadcast(new NewMessageSent($chatMessage))->toOthers();
 
         $user = auth()->user();
         $userId = $user->id;

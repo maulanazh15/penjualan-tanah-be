@@ -48,6 +48,31 @@ return [
             ],
         ],
 
+        'websockets' => [
+            'driver' => 'pusher',
+            'key' => env('PUSHER_APP_KEY'),
+            'secret' => env('PUSHER_APP_SECRET'),
+            'app_id' => env('PUSHER_APP_ID'),
+            'options' => [
+                'useTLS' => false,
+                'encrypted' => false,
+                'host' => '127.0.0.1',
+                'port' => 6001,
+            ],
+        ],
+        
+        'pusher_echo' => [
+            'driver' => 'pusher',
+            'key' => env('PUSHER_KEY'),
+            'secret' => null,
+            'app_id' => env('PUSHER_APP_ID'),
+            'options' => [
+                'host' => 'localhost',
+                'port' => 6001,
+                'scheme' => 'http'
+            ],
+        ],
+
         'ably' => [
             'driver' => 'ably',
             'key' => env('ABLY_KEY'),
