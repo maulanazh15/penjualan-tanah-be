@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatMessageController;
+use App\Http\Controllers\LandController;
 use App\Http\Controllers\LocationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -24,7 +25,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Add routes that require authentication here
     Route::apiResource('chat', ChatController::class)->only(['index', 'show','store']);
     Route::apiResource('chat_message', ChatMessageController::class)->only(['index','store']);
+    Route::get('land/user', [LandController::class, 'getUserLands']);
+    Route::get('land/user/closer-lands', [LandController::class, 'getCloserLands']);
+    Route::apiResource('land',LandController::class)->except(['update']);
+    Route::post('land/{land}', [LandController::class, 'update']);
 });
+
+Route::get('/foto-tanah', [LandController::class, 'getLandPhoto']);
 
 // Route::get('/pusherAuth', [UserController::class, 'pusherAuth']);
 Route::prefix('user')
@@ -41,8 +48,9 @@ Route::prefix('user')
 
 Route::prefix('location')
     ->group(function () {
-        Route::get('/province',[LocationController::class, 'getAllProvinces']);
+        Route::get('/provinces',[LocationController::class, 'getAllProvinces']);
         Route::get('/province/{prov_id}/cities',[LocationController::class, 'getAllCities']);
         Route::get('/city/{city_id}/districts', [LocationController::class, 'getAllDistricts']);
         Route::get('/district/{dis_id}/subdistricts', [LocationController::class, 'getAllSubDistricts']);
+        Route::get('/{subdistrict}', [LocationController::class, 'getAllDataLocation']);
     });

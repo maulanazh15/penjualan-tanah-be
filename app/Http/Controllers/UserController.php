@@ -86,6 +86,7 @@ class UserController extends Controller
 
     public function get(Request $request)
     {
+        // dd($request->user()->province);
         // The authenticated user
         if ($request->user()) {
             return $this->success([
@@ -115,8 +116,12 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'username' => 'unique:users,username,' . $user->id,
             'name' => 'string',
-            'email' => 'email|unique:users,email,' . $user->id,
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
             // 'password' => 'sometimes|required|confirmed',
+            'prov_id' => 'int',
+            'city_id' => 'int',
+            'dis_id' => 'int',
+            'subdis_id' => 'int',
             'photo_profile' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -127,6 +132,10 @@ class UserController extends Controller
         $user->username = $request->input('username') ?? $user->username;
         $user->name = $request->input('name') ?? $user->name;
         $user->email = $request->input('email') ?? $user->email;
+        $user->prov_id = $request->input('prov_id') ?? $user->prov_id; 
+        $user->city_id = $request->input('city_id') ?? $user->city_id;
+        $user->dis_id = $request->input('dis_id') ?? $user->dis_id;
+        $user->subdis_id = $request->input('subdis_id') ?? $user->subdis_id;
 
         // if ($request->has('password')) {
         //     $user->password = Hash::make($request->input('password'));

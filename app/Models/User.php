@@ -4,12 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Notifications\MessageSent;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use App\Models\Chat;
+use App\Models\City;
+use App\Models\Distric;
+use App\Models\Province;
+use App\Models\Subdistric;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\MessageSent;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
@@ -26,6 +31,10 @@ class User extends Authenticatable
         'username',
         'password',
         'photo_profile',
+        'prov_id',
+        'city_id',
+        'dis_id',
+        'subdis_id',
     ];
 
     /**
@@ -48,19 +57,40 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class, 'prov_id','prov_id');
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id','city_id');
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(Distric::class, 'dis_id', 'dis_id');
+    }
+
+    public function subdistrict()
+    {
+        return $this->belongsTo(Subdistric::class, 'subdis_id', 'subdis_id');
+    }
+
     public function chats(): HasMany
     {
         return $this->hasMany(Chat::class, 'created_by');
     }
 
-    public function sendNewMessageNotification(array $data) : void {
-        
+    public function sendNewMessageNotification(array $data): void
+    {
+
         $this->notify(new MessageSent($data));
     }
 
     public function routeNotificationForOneSignal()
     {
-        return ['tags'=>['key' => 'userId','relation'=>'=', 'value' => (string) ($this->id)]];
+        return ['tags' => ['key' => 'userId', 'relation' => '=', 'value' => (string) ($this->id)]];
     }
-
 }

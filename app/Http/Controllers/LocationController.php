@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\City;
 use App\Models\Distric;
 use App\Models\Province;
+use App\Models\Subdistric;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -49,5 +50,14 @@ class LocationController extends Controller
         $subdistricts = $districts->subdistricts;
 
         return $this->success($subdistricts, 'Get All SubDistricts');
+    }
+
+    public function getAllDataLocation(Subdistric $subdistrict) {
+        $district = $subdistrict->district;
+        $city = $district->city;
+        $province = $city->province;
+
+        return $this->success($subdistrict);
+
     }
 }

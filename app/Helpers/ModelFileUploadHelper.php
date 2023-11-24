@@ -115,6 +115,7 @@ class ModelFileUploadHelper
          */
         $baseDirectory = $visibility . '/' . str_replace('_', '-', $model->getTable()) . '/' . str_replace('_', '-', $name);
 
+        // dd($baseDirectory);
         /**
          * Checking if file exists in database then delete it
          * 
