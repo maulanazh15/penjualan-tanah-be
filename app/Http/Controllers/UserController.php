@@ -178,13 +178,8 @@ class UserController extends Controller
         return $this->error('User photo profile not found', 404);
     }
 
-    // public function pusherAuth(Request $request){
-    //     $key = env('PUSHER_APP_KEY');
-    //     $secret = env('PUSHER_APP_SECRET');
-    //     $channel_name = $request->channel_name;
-    //     $socket_id = $request->socket_id;
-    //     $string_to_sign = $socket_id.':'.$channel_name;
-    //     $signature = hash_hmac('sha256', $string_to_sign, $secret);
-    //     return response()->json(['auth' => $key.':'.$signature]);
-    // }
+    public function getOtherUser(User $user) {
+
+        return $this->success($user);
+    }
 }

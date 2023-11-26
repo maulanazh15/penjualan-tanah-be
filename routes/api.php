@@ -44,6 +44,7 @@ Route::prefix('user')
         Route::get('/current-user', [UserController::class, 'get'])->middleware('auth:sanctum')->name('get_current_user');
         Route::post('/update', [UserController::class, 'update'])->middleware('auth:sanctum')->name('update');
         Route::delete('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
+        Route::get('/other-user/{user}', [UserController::class, 'getOtherUser'])->middleware('auth:sanctum');
     });
 
 Route::prefix('location')
